@@ -1,3 +1,5 @@
+albumentations==2.0.8
+clearml==2.0.2
 ipykernel==6.29.5
 matplotlib==3.10.3
 numpy==2.2.6
