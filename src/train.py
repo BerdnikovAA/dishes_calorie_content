@@ -53,7 +53,8 @@ def train(config, device):
          {'params': model.regressor.parameters(),
          'lr': config.REGRESSOR_LR}
     ])
-    criterion = nn.L1Loss(reduction='mean')
+    # criterion = nn.L1Loss(reduction='mean')
+    criterion = nn.HuberLoss()
 
     mae_metric_train = torchmetrics.MeanAbsoluteError().to(device)
     mae_metric_val = torchmetrics.MeanAbsoluteError().to(device)

@@ -16,14 +16,15 @@ class Config:
     
 
     # hyperparameters
-    BATCH_SIZE = 256
-    NUM_WORKERS = 2
-    IMAGE_LR = 1e-4
+    BATCH_SIZE = 128
+    NUM_WORKERS = 8
+    IMAGE_LR = 1e-3
     MLP_LR = 1e-3
     REGRESSOR_LR = 1e-3
     EPOCHS = 100
     
     # paths
+    IMAGE_PATH = 'data/images'
     DISHES_PATH = 'data/dish_fixed.csv'
     INGREDIENTS_PATH = 'data/ingredients_fixed.csv'
     SAVE_PATH = 'models'

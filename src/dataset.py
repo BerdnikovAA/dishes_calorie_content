@@ -12,6 +12,7 @@ from torch.utils.data import Dataset
 
 class MultimodalDataset(Dataset):
     def __init__(self, config, transforms, ds_type):
+        self.config = config
         
         self.dishes_df = pd.read_csv(config.DISHES_PATH)
         self.dishes_df = self.dishes_df[self.dishes_df['split'] == ('train' if ds_type == 'train' else 'test')]
@@ -31,15 +32,15 @@ class MultimodalDataset(Dataset):
         ingredients_ids = self._get_ingredients_ids(self.dishes_df.iloc[idx]['ingredients'])
         table_data = np.isin(self.all_ingredients_ids, ingredients_ids).astype(np.float32)
 
-        img_folder = self.dishes_df.iloc[idx]['dish_id']
-        image = Image.open(os.path.join('data/images', img_folder, 'rgb.png'))
+        dish_id = self.dishes_df.iloc[idx]['dish_id']
+        image = Image.open(os.path.join(self.config.IMAGE_PATH, dish_id, 'rgb.png'))
         image = self.transforms(image=np.array(image))['image']
 
         total_mass = self.dishes_df.iloc[idx]['total_mass']
 
         label = self.dishes_df.iloc[idx]['total_calories']
 
-        return {'image': image, 'table_data': table_data, 'total_mass': total_mass, 'label': label}
+        return {'dish_id': dish_id, 'image': image, 'table_data': table_data, 'total_mass': total_mass, 'label': label}
 
 
 def get_transforms(config, ds_type):
@@ -71,12 +72,13 @@ def get_transforms(config, ds_type):
         alb_cfg = transforms.to_dict()
     
     if task is not None:
-        task.connect(alb_cfg, name='albumentations config')
+        task.connect(alb_cfg, name=f'Albumentations {ds_type} config')
 
     return transforms
 
 
 def collate_fn(batch):
+    dish_ids = [item['dish_id'] for item in batch]
     images = [item['image'] for item in batch]
     table_data = [torch.from_numpy(item['table_data']) for item in batch]
     total_masses = [item['total_mass'] for item in batch]
@@ -91,6 +93,7 @@ def collate_fn(batch):
     labels_tensor = torch.tensor(labels, dtype=torch.float32).unsqueeze(1)
 
     return {
+        'dish_ids': dish_ids,
         'image': images, 
         'table_data': table_data, 
         'total_mass': total_mass_tensor,

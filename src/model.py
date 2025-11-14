@@ -9,6 +9,7 @@ class MultimodalModel(nn.Module):
 
         self.mlp = nn.Sequential(
             nn.Linear(config.MLP_IN_FEATURES, config.MLP_HIDDEN_SIZE),
+            nn.BatchNorm1d(config.MLP_HIDDEN_SIZE),
             nn.ReLU(),
             nn.Dropout(p=0.2),
             nn.Linear(config.MLP_HIDDEN_SIZE, config.MLP_OUT_FEATURES)
@@ -40,7 +41,8 @@ class MultimodalModel(nn.Module):
 
         self.regressor = nn.Sequential(
             # +1 так как добавляю значение total_mass
-            nn.Linear(config.PROJ_SIZE + 1, config.PROJ_SIZE // 2),
+            nn.Linear(2 * config.PROJ_SIZE + 1, config.PROJ_SIZE // 2),
+            nn.BatchNorm1d(config.PROJ_SIZE // 2),
             nn.ReLU(),
             nn.Dropout(p=0.15),
             nn.Linear(config.PROJ_SIZE // 2, 1),
@@ -54,7 +56,8 @@ class MultimodalModel(nn.Module):
         image_emb = self.image_proj(image_features)
         mlp_emb = self.mlp_proj(mlp_features)
         
-        fused_emb = image_emb * mlp_emb
+        # fused_emb = image_emb * mlp_emb
+        fused_emb = torch.cat([image_emb, mlp_emb], dim=1)
 
         fused_emb = torch.cat([fused_emb, total_mass], dim=1)
 
